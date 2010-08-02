@@ -51,7 +51,7 @@ public class HeadProcessor {
 	protected String       title        = "";
 	protected String       content_type = null;
 	protected String       encoding     = null;
-	private   String[]     javascript_blacklist = {"jquery"}; // regexps
+	private   String[]     javascript_blacklist = {/*"jquery"*/}; // regexps
 
 
 	/** Constructors */
