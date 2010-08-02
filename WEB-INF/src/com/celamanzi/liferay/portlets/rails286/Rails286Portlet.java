@@ -45,6 +45,7 @@ import javax.portlet.PortletException;
 import javax.portlet.PortletMode;
 import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
+import javax.portlet.MimeResponse;
 import javax.portlet.PortletResponse;
 import javax.portlet.PortletSession;
 import javax.portlet.ReadOnlyException;
@@ -183,50 +184,52 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 		Map<String, String[]> params = Rails286PortletFunctions.mapRequestParameters(request);
 		NameValuePair[] parametersBody = Rails286PortletFunctions.paramsToNameValuePairs(params);
 
-		String actionMethod = (params.containsKey("originalActionMethod") ? 
-				params.remove("originalActionMethod")[0] : "post"
-		);
+    // String actionMethod = (params.containsKey("originalActionMethod") ? 
+    //    params.remove("originalActionMethod")[0] : "post"
+    // );
 		
 		// Adding the parameters to request for callRails
-		request.getPortletSession(true).setAttribute("requestMethod", actionMethod);
+		//request.getPortletSession(true).setAttribute("requestMethod", actionMethod);
 		request.setAttribute("parametersBody", parametersBody);
 		
 		byte[] railsBytes = callRails(request, response);
-		String filename = getFilename();
-
-		if (filename != null && !filename.equals("")) {
-			
-			File file = null;
-			try {
-				
-				file = new File(Rails286PortletFunctions.getTempPath() + "/" + filename);
-				
-				FileOutputStream fos = new FileOutputStream(file);
-				fos.write(railsBytes);
-				
-				fos.flush();
-				fos.close();
-	
-				// This "if" is to avoid this call when in a test environment, because liferay test environment is too
-				// heavy and dirty to be implemented =[ (sorry...)
-				if (FileUtil.getFile() != null) {
-					PortletResponseUtil.sendFile(response, filename, new FileInputStream(file));
-				}
-				
-				if (!file.delete()){
-					log.error("Failed to delete file " + file.getAbsolutePath());
-				}
-			
-			} catch(IOException e) {
-				log.error("Exception: " + e.getMessage());
-				if (file != null){
-					log.error("File path: " + file.getAbsolutePath());
-				}
-			}
-			/**
-			 Perhaps a way to test Liferay is to create a new "page" that has the test bench portlet.
-			 */
-		}
+		response.getPortletOutputStream().write(railsBytes);
+		
+    // String filename = getFilename();
+    // 
+    // if (filename != null && !filename.equals("")) {
+    //  
+    //  File file = null;
+    //  try {
+    //    
+    //    file = new File(Rails286PortletFunctions.getTempPath() + "/" + filename);
+    //    
+    //    FileOutputStream fos = new FileOutputStream(file);
+    //    fos.write(railsBytes);
+    //    
+    //    fos.flush();
+    //    fos.close();
+    //  
+    //    // This "if" is to avoid this call when in a test environment, because liferay test environment is too
+    //    // heavy and dirty to be implemented =[ (sorry...)
+    //    if (FileUtil.getFile() != null) {
+    //      PortletResponseUtil.sendFile(response, filename, new FileInputStream(file));
+    //    }
+    //    
+    //    if (!file.delete()){
+    //      log.error("Failed to delete file " + file.getAbsolutePath());
+    //    }
+    //  
+    //  } catch(IOException e) {
+    //    log.error("Exception: " + e.getMessage());
+    //    if (file != null){
+    //      log.error("File path: " + file.getAbsolutePath());
+    //    }
+    //  }
+    //  /**
+    //   Perhaps a way to test Liferay is to create a new "page" that has the test bench portlet.
+    //   */
+    // }
 	}
 
 	/** 
@@ -417,7 +420,7 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 				false);
 	}
 	
-	private byte[] callRails(PortletRequest request, PortletResponse response) throws PortletException{
+	private byte[] callRails(PortletRequest request, MimeResponse response) throws PortletException{
 
 		/**
 		 * Session storage.
@@ -519,6 +522,9 @@ public class Rails286Portlet extends GenericPortlet implements PreferencesAttrib
 			railsBytes = e.getMessage().getBytes();
 		}
 
+    // set the content type
+    response.setContentType(client.getContentType());
+    
 		// set the response status code (for tests)
 		responseStatusCode = client.getStatusCode();
 		return railsBytes;
